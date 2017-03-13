@@ -32,6 +32,7 @@ connection process by trying to conenct again after 2 seconds.  I fixed this by 
 status again, and ignoring WL_IDLE_STATUS, which should be returned when connection but appears to never occur.  Simply letting the
 ESP8266 store the AP and connect on launch would have solved all these problems, but no, I had to do it myself.  I did try to manage
 reconnections myself, but as mentioned above, I found it more reliable to let the ESP8266 handle this itself.
+- I could get static IPs to work, but not DNS, which is important for sending requests to SmartThings.  I finally gave up and just used DHCP on the ESP8266, and assigned a static IP to it from my router by associating it with its MAC address.  Not as elegant as I'd like, but it does the job.  The static IP is needed because this is how the SmartApp finds the ESP8266.
 
 The main loop calls different functions to handle different bits of functionality:
 - webserver.handleClient() manages the web server, as normal.
@@ -55,3 +56,6 @@ because the wake time for the computers is a couple of seconds, so everything se
 The transition engine is very simple, and just turns on each LED panel's associated relay after a specified time delay.  The keyframes
 for the transition are stored in arrays with the light pin and transition time.  Mutliple patterns can be programmed, with different
 patterns exceuted each time the lights are turned on or off.
+
+## Configuration
+All of the configuration options are in the separate `AutoOffice_ESP8266_Config.h`.  The one in GitHub is called `AutoOffice_ESP8266_Config_REMOVE_THIS_.h`, because I don't check my actual config into GitHub.  Remove the `_REMOVE_THIS_' bit, set up the variables, and you should be good to go.
