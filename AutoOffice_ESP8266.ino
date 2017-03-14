@@ -1,19 +1,15 @@
 /*
- ESP8266 Blink by Simon Peter
- Blink the blue LED on the ESP-01 module
- This example code is in the public domain
- 
- The blue LED on the ESP-01 module is connected to GPIO1 
- (which is also the TXD pin; so we cannot use Serial.print() at the same time)
- 
- Note that this sketch uses LED_BUILTIN to find the pin with the internal LED
+  AutoOffice ESP8266
+
+  Used to control lights through a relay board.  Input is an illuminated button.  Also supports
+  control through a web interface, and sends commands to a SmartThings client over HTTP.
 */
 
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
-#include "OfficeLights_Config.h"
+#include "AutoOffice_ESP8266_Config.h"
 
 #define TELL_SMARTTHINGS_ON_BUTTON				// When defined, pressing the button will tell SmartThings to turn on/off other devices
 
