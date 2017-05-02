@@ -11,6 +11,10 @@
 #include <ArduinoJson.h>
 #include "AutoOffice_ESP8266_Config.h"
 
+extern "C" {
+ #include "user_interface.h"					// For setting the hostname
+}
+
 #define TELL_SMARTTHINGS_ON_BUTTON				// When defined, pressing the button will tell SmartThings to turn on/off other devices
 
 #define BUTTON_LED_PIN			13			// LED ring on the button
@@ -229,6 +233,8 @@ void ConnectToWifi() {
 	Serial.print( wifiSSID );
 	Serial.println( "..." );
 
+//	WiFi.hostname( "OfficeLights" );			// Doesn't work for whatever reason
+	wifi_station_set_hostname( "OfficeLights" );
 //	WiFi.mode(   WIFI_STA );
 	WiFi.begin(  wifiSSID, wifiPassword );
 
@@ -455,27 +461,24 @@ void TestButton () {
 	// Test for a button press
 	if( (digitalRead( BUTTON_PUSH_PIN ) == LOW) ) {
 		if( !stateChanged ) {
-			stateChanged     = true;
-			stateChangedTime = millis();
-
-			// Actually turn the lights on/off
-			TurnOnLights( (lightState == LIGHTSTATE_ON) ? false : true );
-
 			Serial.print(   "Button pressed; transitioning to " );
 			Serial.print(   transitionNames[ transitionTo ] );
 			Serial.println( "..." );
 
 			#ifdef TELL_SMARTTHINGS_ON_BUTTON
+				// Send the request to SmartThings.  Since we haven't changed lightState yet, we have to
+				//  flip the tests (ie: if LIGHTSTATE_OFF, send "wake", not "sleep").
+
 				// Set up our JSON payload
 				DynamicJsonBuffer	 jsonBuffer;					// Must be declared here (as opposed to globally), or we run out of memory and stop parsing eventually ( https://bblanchon.github.io/ArduinoJson/faq/the-first-parsing-succeeds-why-do-the-next-ones-fail/ )
 				char			 buf[256];
 				JsonObject		&root = jsonBuffer.createObject();
 	
-				root["command"] = (lightState == LIGHTSTATE_ON) ? "wake" : "sleep";
+				root["command"] = (lightState == LIGHTSTATE_OFF) ? "wake" : "sleep";
 				root.printTo( buf, 256 );
 	
 				// Send the PUT request to SmartThings
-				String		urlEnd = String( stAppID ) + String( "/do" ) + String( (lightState == LIGHTSTATE_ON) ? "/wake" : "/sleep");
+				String		urlEnd = String( stAppID ) + String( "/do" ) + String( (lightState == LIGHTSTATE_OFF) ? "/wake" : "/sleep");
 				String		url    = String( stAppURL ) + urlEnd;
 				Serial.print(   " - Sending \"do\" action to SmartThings at " );
 				Serial.println( url );
@@ -501,6 +504,14 @@ void TestButton () {
 	
 				http.end();
 			#endif
+
+			// Turn the lights on/off.  We have to do this after the HTTP request or we screw up
+			//  the transition timing (the first two will usually fire immediately after each other).
+			stateChanged     = true;
+			stateChangedTime = millis();
+
+			// Actually turn the lights on/off
+			TurnOnLights( (lightState == LIGHTSTATE_ON) ? false : true );
 		}
 
 	} else {
