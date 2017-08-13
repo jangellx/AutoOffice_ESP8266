@@ -59,3 +59,23 @@ patterns exceuted each time the lights are turned on or off.
 
 ## Configuration
 All of the configuration options are in the separate `AutoOffice_ESP8266_Config.h`.  The one in GitHub is called `AutoOffice_ESP8266_Config_REMOVE_THIS_.h`, because I don't check my actual config into GitHub.  Remove the `_REMOVE_THIS_' bit, set up the variables, and you should be good to go.
+
+## SSL
+SmartThings requires SSL communicaitons.  At the time I implemented this, SSL root certificate authorities weren't supported by the
+Arduino ESP8266 library.  The solution is to store the SSL fingerprint in the code and pass that when opening an HTTP connection.
+
+This generally worked fine, until the beginning of August 2017 when the button on my desk would no longer wake the machines.  The
+ESP8266 reported that het conenction had failed.  It appears that the SmartThingns certificate had been reaplced with a new one, so I
+was no longer to send requests to SmartThings.  The ESP8266 would recieve requests, though, so motion sensors and the computers waking
+and sleeping would trigger the lights, but the lights couldn't trigger the computers.
+
+I "fixed" this by moving the SSH fingerprint to the config header, and copied the new fingerprint string from Chrome into the the header.  I should b good for another six months or so (the certificate seems to be good until January, anyway).  To find the fingerprint in Chrome:
+- Go to graph.api.smartthings.com .
+- Right click and choose Inspect.
+- Go to the Security Tab.
+- Click View Certificate.
+- Go to the Details tab.
+- Scroll down to Thumbprint, which is the fingerprint we're looking for.  Copy that string into the sslFingerprint in the config header.
+- Upload the updated sketch to the ESP8266.
+
+That took care of the problem for now.  When the Arudino library supports SSL root CA and can test the signature itself, I'll update the code so I don't have to do this every 6 months.
