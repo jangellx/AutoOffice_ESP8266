@@ -484,7 +484,7 @@ void TestButton () {
 				Serial.println( url );
 	
 				HTTPClient	http;
-				http.begin( url, "9f 9a 82 1a 29 37 f6 32 6b e2 9d 51 a4 7d 8c d0 78 18 3b e1" );	// HTTPS SHA1 fingerprint; look for the comment about how to generate this here: https://github.com/esp8266/Arduino/issues/2556 ... or just copy it out of the security certificat in a web browser
+				http.begin( url, sslFingerprint );
 				http.addHeader( "Authorization", String("Bearer ") + stAccessToken );
 	
 				Serial.print(   " - HTTP PUT payload: " );
@@ -494,6 +494,7 @@ void TestButton () {
 				if( error < 0 ) {
 					Serial.print(   " - HTTP PUT request failed:  " );
 					Serial.println( http.errorToString( error ) );
+					Serial.println( "   For connection refused, check HTTPS SHA1 fingerprint, as SSL credentials at smarthings.com might have changed" );
 				} else {
 					Serial.print(   " - HTTP response:  " );
 					Serial.println( error );

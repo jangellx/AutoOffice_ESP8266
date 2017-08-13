@@ -12,6 +12,8 @@ const char	*stAppURL       = "https://graph.api.smartthings.com:443/api/smartapp
 const char	*stAppID        = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";				// SmartThings application ID
 const char	*stAccessToken  = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";				// SmartThings access token
 
+const char      *sslFingerprint = "‎43 34 9a 7b a1 0a bf 96 85 79 f6 0a cc e8 fd bc 7a cb ce 33";	// HTTPS SHA1 fingerprint; look for the comment about how to generate this here: https://github.com/esp8266/Arduino/issues/2556 ... or just copy it out of the security certificate in a web browser
+
 // The wifi state is specific to your setup.  If wifiUseStaticIP is true, then the gateway,
 //  subnet mask and static IP are also required
 const char	*wifiSSID     = "ssidHere";
