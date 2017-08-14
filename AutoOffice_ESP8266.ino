@@ -5,6 +5,7 @@
   control through a web interface, and sends commands to a SmartThings client over HTTP.
 */
 
+#include <time.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
@@ -41,8 +42,14 @@ extern "C" {
 #define LIGHTTRANS_COUNT                5			// Total number of transitions
 #define LIGHTTRANS_NONE			-1			// No transition currently running.  Also used to terminate arrays
 
-int	toAllOnTransitions[]  = { LIGHTTRANS_OFF_TO_ON_ALL_SEQ, LIGHTTRANS_OFF_TO_ON_ALL_CENTER, LIGHTTRANS_NONE };		// All "off to all on" transitions
-int	toAllOffTransitions[] = { LIGHTTRANS_ON_TO_OFF_ALL_SEQ, LIGHTTRANS_ON_TO_OFF_ALL_CENTER, LIGHTTRANS_NONE };		// All "on to all off" transitions
+// Uncomment for all transitions
+//int	toAllOnTransitions[]  = { LIGHTTRANS_OFF_TO_ON_ALL_SEQ, LIGHTTRANS_OFF_TO_ON_ALL_CENTER, LIGHTTRANS_NONE };		// All "off to all on" transitions
+//int	toAllOffTransitions[] = { LIGHTTRANS_ON_TO_OFF_ALL_SEQ, LIGHTTRANS_ON_TO_OFF_ALL_CENTER, LIGHTTRANS_NONE };		// All "on to all off" transitions
+
+// Just one transition
+int	toAllOnTransitions[]  = { LIGHTTRANS_OFF_TO_ON_ALL_SEQ,                                  LIGHTTRANS_NONE };		// All "off to all on" transitions
+int	toAllOffTransitions[] = { LIGHTTRANS_ON_TO_OFF_ALL_SEQ,                                  LIGHTTRANS_NONE };		// All "on to all off" transitions
+
 int	toAllIndex            = 0;				// Index into the on/off transition array to fire next
 
 int  lightState           = LIGHTSTATE_OFF;			// Current state of the lights
@@ -242,6 +249,37 @@ void ConnectToWifi() {
 		WiFi.config( wifiIP, wifiSubnet, wifiGateway, wifiDNS1, wifiDNS2 );
 
 //	WiFi.printDiag( Serial );
+}
+
+// Synchronize time useing SNTP. This is necessary to verify that
+//  the TLS certificates offered by the server are currently valid.
+void GetTimeFromNTP() {
+	static bool		didGetTime = false;
+
+	if( didGetTime )			return;
+	if( WiFi.status() != WL_CONNECTED )	return;
+
+	Serial.print("Setting time using SNTP...");
+
+	configTime(8 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+
+	time_t now = time(nullptr);
+	while (now < 1000) {
+		delay(500);
+		Serial.print(".");
+		now = time(nullptr);
+	}
+
+	Serial.println(" done");
+
+//	Serial.println("");
+//
+//	struct tm timeinfo;
+//	gmtime_r(&now, &timeinfo);
+//	Serial.print("Current time: ");
+//	Serial.print(asctime(&timeinfo));
+
+	didGetTime = true;
 }
 
 // Send a response to the server containing the "isAwake" state as JSON.
@@ -603,6 +641,7 @@ void loop() {
 
 	// Connect (or re-conenct) to wifi, if necessary
 	ConnectToWifi();
+	GetTimeFromNTP();
 
 	// Test the button, which sets up the transition to turn the lights on and off
 	TestButton();
