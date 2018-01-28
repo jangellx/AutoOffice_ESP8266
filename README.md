@@ -69,7 +69,7 @@ ESP8266 reported that het conenction had failed.  It appears that the SmartThing
 was no longer to send requests to SmartThings.  The ESP8266 would recieve requests, though, so motion sensors and the computers waking
 and sleeping would trigger the lights, but the lights couldn't trigger the computers.
 
-I "fixed" this by moving the SSH fingerprint to the config header, and copied the new fingerprint string from Chrome into the the header.  I should b good for another six months or so (the certificate seems to be good until January, anyway).  To find the fingerprint in Chrome:
+I "fixed" this by moving the SSH fingerprint to the config header, and copied the new fingerprint string from Chrome into the the header.  I should be good for another six months or so (the certificate seems to be good until January, anyway).  To find the fingerprint in Chrome:
 - Go to graph.api.smartthings.com .
 - Right click and choose Inspect.
 - Go to the Security Tab.
