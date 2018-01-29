@@ -251,7 +251,7 @@ void ConnectToWifi() {
 //	WiFi.printDiag( Serial );
 }
 
-// Synchronize time useing SNTP. This is necessary to verify that
+// Synchronize time using SNTP. This is necessary to verify that
 //  the TLS certificates offered by the server are currently valid.
 void GetTimeFromNTP() {
 	static bool		didGetTime = false;
@@ -295,6 +295,25 @@ void RespondWithAwakeStateJSON( bool state ) {
 	webServer.send( 200, "applicationt/json", buf );
 }
 
+// This checks to see if we recently completed a transition.  We want to ignore
+//  HTTP requests to turn the lights on/off during this time to avoid feedback
+//  loops.  Honestly, I'm not sure WHY we get feedback lops, since we don't block
+//  while running the transition, but whatever.
+#define POST_TRANSITION_IDLE_PERIOD		  5000  // 5 seconds; how long to wait after a transition before handling new HTTP events, avoiding feedback loops
+static int		transitionEndedAt = 0;		// Time in ms that we ended the last transition.  0 if we're not waiting for the post-transition idle period to expire
+
+bool IsInPostTransitionIdlePeriod() {
+	if( transitionEndedAt == 0 )
+		return false;
+
+	if( (transitionEndedAt + POST_TRANSITION_IDLE_PERIOD) < millis() ) {
+		transitionEndedAt = 0;
+		return false;
+	}
+
+	return true;
+}
+
 // Set up the web server and the paths we handle.
 void SetupWebServer() {
 	webServer.on( "/", [](){
@@ -321,12 +340,20 @@ void SetupWebServer() {
 				Serial.println( "/do request; command not found." );
 
 			} else if( strcmp( command, "wake" ) == 0 ) {
-				TurnOnLights( true );
-				Serial.println( "/do request; wake - lights on." );
+				if( IsInPostTransitionIdlePeriod() ) {
+					Serial.println( "/do request; wake - ignoring (post-transition idle period)." );
+				} else {
+					TurnOnLights( true );
+					Serial.println( "/do request; wake - lights on." );
+				}
 
 			} else if( strcmp( command, "sleep" ) == 0 ) {
-				TurnOnLights( false );
-				Serial.println( "/do request; sleep - lights off." );
+				if( IsInPostTransitionIdlePeriod() ) {
+					Serial.println( "/do request; sleep - ignoring (post-transition idle period)." );
+				} else {
+					TurnOnLights( false );
+					Serial.println( "/do request; sleep - lights off." );
+				}
 
 			} else {
 				Serial.println( "/do request; unknown command." );
@@ -452,7 +479,7 @@ void setup() {
 	Serial.println( "" );
 }
 
-// Toggle the state of the lights
+// Toggle the state of the lights.
 void TurnOnLights( bool state ) {
 	// Make sure there's something to do
 	if( transitionTo != LIGHTTRANS_NONE ) {
@@ -625,9 +652,10 @@ void DoTransition() {
 			powerDownAt = millis();
 		}
 
-		reportWarmUp = true;
-		transitionTo = LIGHTTRANS_NONE;
-		currentKey   = 0;
+		reportWarmUp      = true;
+		transitionTo      = LIGHTTRANS_NONE;
+		currentKey        = 0;
+		transitionEndedAt = millis();
 		Serial.println( "Transition complete." );
 	}
 }

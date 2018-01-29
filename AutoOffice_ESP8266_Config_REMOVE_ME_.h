@@ -12,14 +12,14 @@ const char	*stAppURL       = "https://graph.api.smartthings.com:443/api/smartapp
 const char	*stAppID        = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";				// SmartThings application ID
 const char	*stAccessToken  = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";				// SmartThings access token
 
-const char      *sslFingerprint = "43 34 9a 7b a1 0a bf 96 85 79 f6 0a cc e8 fd bc 7a cb ce 33";	// HTTPS SHA1 fingerprint/thumbprint; copy it from the certificate in your web browser.  Beware of invisible leading characters when copy/pasting!
+const char      *sslFingerprint = "fef05c8e16b604ff137e2fa73fd1989b66d81a72";	// HTTPS SHA1 fingerprint/thumbprint; copy it from the certificate in your web browser.  Beware of invisible leading characters when copy/pasting!
 
 // The wifi state is specific to your setup.  If wifiUseStaticIP is true, then the gateway,
 //  subnet mask and static IP are also required
 const char	*wifiSSID     = "ssidHere";
 const char	*wifiPassword = "passwrodHere";
 
-// Static IP isn't workginf ro some reason.  I mean, it sets the static IP, the ESP8266 is ignoring
+// Static IP isn't working for some reason.  I mean, it sets the static IP, the ESP8266 is ignoring
 //  the DNS settings, so it can't connect to the SmartThings graph to send wake/sleep commands when
 //  the button is pushed.  So for now we'll just use DHCP and set the IP statically from the router.
 bool		 wifiUseStaticIP = false;								// If true, the following five must also be defined
